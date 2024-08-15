@@ -7,7 +7,7 @@ import os
 import importlib
 import sys
 import numpy as np
-import evaluation
+import model.evaluation as evaluation
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import xgboost as xgb
@@ -22,7 +22,6 @@ from sklearn.metrics import classification_report
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + './../..')
 
 importlib.reload(evaluation)
-import evaluation
 # MAX_LEN=12
 # MAX_COND_SEQ=56
 # MAX_PROC_SEQ=40
