@@ -172,5 +172,6 @@ cython_debug/
 .obsidian
 
 data/
+data_dt/
 mimiciv/
 utils/__pycache__/

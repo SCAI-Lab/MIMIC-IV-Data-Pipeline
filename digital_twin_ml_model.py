@@ -3,6 +3,8 @@ import numpy as np
 import pickle
 import torch
 import random
+from tqdm import tqdm
+import time
 import os
 import importlib
 import sys
@@ -16,6 +18,8 @@ from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import HistGradientBoostingClassifier
+
+import plotly.express as px
 
 from imblearn.over_sampling import RandomOverSampler
 from sklearn.metrics import classification_report
@@ -38,6 +42,7 @@ class ML_models():
         self.concat=concat
         self.oversampling=oversampling
         self.loss=evaluation.Loss('cpu',True,True,True,True,True,True,True,True,True,True,True)
+        self.data_dt_folder = 'data_dt/'
         self.ml_train()
     def create_kfolds(self):
         labels=pd.read_csv('./data/csv/labels.csv', header=0)
@@ -79,17 +84,33 @@ class ML_models():
         k_hids=self.create_kfolds()
         
         labels=pd.read_csv('./data/csv/labels.csv', header=0)
+
+        
+
         for i in range(self.k_fold):
             print("==================={0:2d} FOLD=====================".format(i))
             test_hids=k_hids[i]
             train_ids=list(set([0,1,2,3,4])-set([i]))
             train_hids=[]
             for j in train_ids:
-                train_hids.extend(k_hids[j])                    
+                train_hids.extend(k_hids[j])
+
+            print("Test set size: ", len(test_hids))
+            print("Train set size: ", len(train_hids))
             
             concat_cols=[]
             if(self.concat):
                 dyn=pd.read_csv('./data/csv/'+str(train_hids[0])+'/dynamic.csv',header=[0,1])
+                
+                dyn_plot = dyn.copy()
+                # Flatten the MultiIndex columns
+                dyn_plot.columns = ['_'.join(col).strip() for col in dyn_plot.columns.values]
+
+                # Plotting
+                fig = px.line(dyn_plot, title="Interactive Plot of df_dyn Data")
+                fig.show()
+
+                
                 dyn.columns=dyn.columns.droplevel(0)
                 cols=dyn.columns
                 time=dyn.shape[0]
@@ -98,8 +119,29 @@ class ML_models():
                     cols_t = [x + "_"+str(t) for x in cols]
 
                     concat_cols.extend(cols_t)
+
             print('train_hids',len(train_hids))
+            
             X_train,Y_train=self.getXY(train_hids,labels,concat_cols)
+
+            # X_train (N, 62496 (nr F * T), concat: ethnicity, gender, insurance, ...): labels T = 72, F = 868
+            # columns: 225158_0 (feature_id_T)
+            # Y_train (N,): labels
+
+            # Saving X_train and Y_train as strongly compressed HDF5 files
+            start_time = time.time()
+            X_train.to_hdf(self.data_dt_folder + 'X_train.h5', key='X_train', mode='w', complevel=9, complib='blosc')
+            Y_train.to_hdf(self.data_dt_folder + 'Y_train.h5', key='Y_train', mode='w', complevel=9, complib='blosc')
+            save_time = time.time() - start_time
+            print(f"Time taken to save X_train & Y_train: {save_time} seconds")
+
+            start_time = time.time()
+            # Loading X_train and Y_train from HDF5 files
+            X_train = pd.read_hdf(self.data_dt_folder + 'X_train.h5', key='X_train')
+            Y_train = pd.read_hdf(self.data_dt_folder + 'Y_train.h5', key='Y_train')
+            save_time = time.time() - start_time
+            print(f"Time taken to load X_train & Y_train: {save_time} seconds")
+
             #encoding categorical
             gen_encoder = LabelEncoder()
             eth_encoder = LabelEncoder()
@@ -127,8 +169,10 @@ class ML_models():
             
             print(X_test.shape)
             print(Y_test.shape)
-            #print("just before training")
-            #print(X_test.head())
+            print("just before training")
+            print(X_test.head())
+
+            print(stop)
             self.train_model(X_train,Y_train,X_test,Y_test)
     
     def train_model(self,X_train,Y_train,X_test,Y_test):
@@ -146,7 +190,7 @@ class ML_models():
             X_train=pd.get_dummies(X_train,prefix=['gender','ethnicity','insurance'],columns=['gender','ethnicity','insurance'])
             X_test=pd.get_dummies(X_test,prefix=['gender','ethnicity','insurance'],columns=['gender','ethnicity','insurance'])
             
-            model = LogisticRegression().fit(X_train, Y_train) 
+            model = LogisticRegression().fit(X_train, Y_train)
             logits=model.predict_log_proba(X_test)
             prob=model.predict_proba(X_test)
             self.loss(prob[:,1],np.asarray(Y_test),logits[:,1],False,True)
@@ -180,8 +224,9 @@ class ML_models():
         X_df=pd.DataFrame()   
         y_df=pd.DataFrame()   
         features=[]
-        #print(ids)
-        for sample in ids:
+        print(ids)
+        print(len(ids))
+        for sample in tqdm(ids, desc="Processing samples"):
             if self.data_icu:
                 y=labels[labels['stay_id']==sample]['label']
             else:
@@ -287,6 +332,3 @@ class ML_models():
         imp_df['imp']=importance
         imp_df['feature']=features
         imp_df.to_csv('./data/output/'+'feature_importance.csv', index=False)
-                
-                
-
