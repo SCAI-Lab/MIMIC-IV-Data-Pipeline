@@ -164,6 +164,17 @@ class DL_models():
                 print("======= EPOCH {:.1f} ========".format(epoch))
                 for nbatch in range(int(len(train_hids)/(args.batch_size))):
                     meds,chart,out,proc,lab,stat_train,demo_train,Y_train=self.getXY(train_hids[nbatch*args.batch_size:(nbatch+1)*args.batch_size],labels)
+
+                    """
+                    print(meds.shape)   # (0, 0)
+                    print(chart.shape)  # (200, 72, 450)
+                    print(out.shape)    # (200, 72, 70)
+                    print(proc.shape)   # (200, 72, 157)
+                    print(lab.shape)    # (0, 0)
+                    print(stat_df.shape)# (200, 1364)
+                    print(demo_df.shape)# (200, 4)
+                    print(y_df.shape)   # (200,)
+                    """
 #                     print(chart.shape)
 #                     print(meds.shape)
 #                     print(stat_train.shape)
@@ -333,7 +344,7 @@ class DL_models():
         #print(ids)
         dyn=pd.read_csv('./data/csv/'+str(ids[0])+'/dynamic.csv',header=[0,1])
         keys=dyn.columns.levels[0]
-#         print("keys",keys)
+        
         for i in range(len(keys)):
             dyn_df.append(torch.zeros(size=(1,0)))
 #         print(len(dyn_df))
@@ -386,7 +397,6 @@ class DL_models():
             demo["insurance"].replace(self.ins_vocab, inplace=True)
             demo["Age"].replace(self.age_vocab, inplace=True)
             demo=demo[["gender","ethnicity","insurance","Age"]]
-            #print(demo)
             demo=demo.values
             #print(demo)
             demo=torch.tensor(demo)
@@ -399,7 +409,7 @@ class DL_models():
         
         for k in range(len(keys)):
             if keys[k]=='MEDS':
-                meds=dyn_df[k]
+                x=dyn_df[k]
             if keys[k]=='CHART':
                 chart=dyn_df[k]
             if keys[k]=='OUT':
@@ -422,7 +432,8 @@ class DL_models():
 #         print("stat_df",stat_df.shape)  
 #         print("demo_df",demo_df.shape)  
 #         print("meds",meds.shape)  
-     #         X_df=X_df.type(torch.LongTensor)        
+     #         X_df=X_df.type(torch.LongTensor)
+     
         return meds,chart,out,proc,lab ,stat_df, demo_df, y_df       
             
            

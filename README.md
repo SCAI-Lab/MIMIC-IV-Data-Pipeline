@@ -99,3 +99,74 @@ Download the files using your terminal: wget -r -N -c -np --user mehakg --ask-pa
 - Follow each code bloack and read intructions given just before each code block to run code block.
 - Follow the exact file paths and filenames given in instructions for each code block to run the pipeline.
 - For evaluation module, clear instructions are provided on how to use it as a standalone module.
+
+
+
+### Hybrid LSTM Model:
+                                      +--------------------+
+                                      |  Demographic Data  |
+                                      | (gender, ethnicity,|
+                                      |  age, insurance)   |
+                                      +--------------------+
+                                               |
+                             +-----------------------------------+
+                             |    Embedding Layers (nn.Embedding)| 
+                             |    for gender, ethnicity, etc.    |
+                             +-----------------------------------+
+                                               |
+                                               v
+                                +---------------------------+
+                                | Fully Connected Layer (statfc,|
+                                | statfc2) for demographic   |
+                                | data processing            |
+                                +---------------------------+
+                                               |
+                                               v
+           +---------------------------------------------+
+           |            LSTMBaseH Model                  |
+           |                                             |
+           |  +---------------------------------------+  |
+           |  |            Medical Data Inputs        |  |
+           |  |(meds, proc, out, chart, lab, conds)   |  |
+           |  +---------------------------------------+  |
+           |             |           |          |       |
+           |             v           v          v       |
+           |    +---------------------------+           |
+           |    |  Embedding Layers         |           |
+           |    | (ValEmbed, CodeEmbed,     |           |
+           |    |  StatEmbed)               |           |
+           |    +---------------------------+           |
+           |             |           |          |       |
+           |             v           v          v       |
+           |    +---------------------------+           |
+           |    |    Fully Connected Layer  |           |
+           |    |   (embedfc for medical    |           |
+           |    |    data processing)       |           |
+           |    +---------------------------+           |
+           |             |                               |
+           |             v                               |
+           |  +----------------------+    +------------+|
+           |  |       LSTM Layer     |    | Demographic||
+           |  |  (Processes medical  |    |  Output    ||
+           |  |    data embeddings)  |    | (statfc,   ||
+           |  +----------------------+    |  statfc2)  ||
+           |             |                  +------------+
+           |             v                        |
+           |  +-------------------------------+  |
+           |  | Fully Connected Layer (fc1)    |  |
+           |  |     (Merges LSTM and           |  |
+           |  |    demographic outputs)        |  |
+           |  +-------------------------------+  |
+           |             |                      |
+           |             v                      |
+           |  +----------------------------+   |
+           |  | Final Fully Connected Layer |   |
+           |  |         (fc2)               |   |
+           |  +----------------------------+   |
+           |             |                      |
+           |             v                      |
+           |      +-----------------+           |
+           |      | Sigmoid Layer   |           |
+           |      | (Final Output)  |           |
+           |      +-----------------+           |
+           +-------------------------------------+
