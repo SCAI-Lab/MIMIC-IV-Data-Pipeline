@@ -42,7 +42,7 @@ class ML_models():
         self.concat=concat
         self.oversampling=oversampling
         self.loss=evaluation.Loss('cpu',True,True,True,True,True,True,True,True,True,True,True)
-        self.data_dt_folder = 'data_dt/'
+        self.data_dt_folder = 'data_dt_no_overs/'
         self.ml_train()
     def create_kfolds(self):
         labels=pd.read_csv('./data/csv/labels.csv', header=0)

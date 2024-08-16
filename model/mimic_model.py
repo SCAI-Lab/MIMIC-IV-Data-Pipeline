@@ -9,16 +9,16 @@ import importlib
 import numpy as np
 from collections import defaultdict
 import sys
-import parameters
-from parameters import *
+import model.parameters as parameters
+from model.parameters import *
 import argparse
 import captum
 from captum.attr import IntegratedGradients, Occlusion, LayerGradCam, LayerAttribution
 from argparse import ArgumentParser
 
 importlib.reload(parameters)
-import parameters
-from parameters import *
+import model.parameters
+from model.parameters import *
 
 class LSTMBase(nn.Module):
     def __init__(self,device,cond_vocab_size,proc_vocab_size,med_vocab_size,out_vocab_size,chart_vocab_size,lab_vocab_size,eth_vocab_size,gender_vocab_size,age_vocab_size,ins_vocab_size,modalities,embed_size,rnn_size,batch_size):
@@ -319,7 +319,7 @@ class LSTMBaseH(nn.Module):
         out1=torch.zeros(size=(0,0))
         
         if meds.shape[0]:
-            medEmbedded=self.med(med)
+            medEmbedded=self.med(meds)
             
             if out1.nelement():
                 out1=torch.cat((out1,medEmbedded),2)
@@ -1251,10 +1251,3 @@ class CNNBaseH(nn.Module):
         #print("hi")
         
         return sigout1,out1
-        
-
-# In[ ]:
-
-
-
-

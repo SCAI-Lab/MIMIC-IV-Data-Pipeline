@@ -33,4 +33,4 @@ elif radio_input7.value=='10-fold CV':
     cv=int(10)
 """
 
-ml=ML_models(data_icu,k_fold=int(5),model_type='Logistic Regression',concat='Conactenate',oversampling='True')
+ml=ML_models(data_icu,k_fold=int(5),model_type='Logistic Regression',concat='Conactenate',oversampling='False')

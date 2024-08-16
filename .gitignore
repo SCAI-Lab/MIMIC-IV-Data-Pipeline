@@ -173,5 +173,7 @@ cython_debug/
 
 data/
 data_dt/
+data_dl/
 mimiciv/
+saved_models/
 utils/__pycache__/
