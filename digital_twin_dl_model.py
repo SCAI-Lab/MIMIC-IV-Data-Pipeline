@@ -8,6 +8,7 @@ import time
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 import pandas as pd
 import numpy as np
+import h5py
 import torch as T
 import torch
 from tqdm import tqdm
@@ -160,7 +161,65 @@ class DL_models():
                 train_logits=[]
                 train_truth=[]
                 self.net.train()
-            
+
+
+                ###########################################
+                #               Load batches              #
+                ###########################################
+                hids=labels.iloc[:,0]
+                zids = hids.values
+                print("HIDS: ", hids)
+                print(len(k_hids))
+                print(len(k_hids[0]))
+                print("TRAIN hids: ", len(train_hids))
+                print("======= EPOCH {:.1f} ========".format(epoch))
+
+                z_size = 64
+                nr_zids = len(zids)
+                zepochs  = math.ceil(nr_zids / z_size)
+                print(zepochs)
+
+                print("Nr batches: ", )
+
+                # Create a single HDF5 file to store all batches
+                #for sample in tqdm(ids, desc="Processing samples"):
+                with h5py.File('all_batches_data_v2.h5', 'w') as h5file:
+                    for nbatch in  tqdm(range(int(len(zids) / z_size)), desc="Loading batches"):
+                            meds, chart, out, proc, lab, stat_train, demo_train, Y_train = self.getXY(train_hids[nbatch * z_size : (nbatch + 1) * z_size], labels)
+
+                            """
+                            print(meds.shape)   # (0, 0)
+                            print(chart.shape)  # (200, 72, 450)
+                            print(out.shape)    # (200, 72, 70)
+                            print(proc.shape)   # (200, 72, 157)
+                            print(lab.shape)    # (0, 0)
+                            print(stat_train.shape)# (200, 1364)
+                            print(demo_train.shape)# (200, 4)
+                            print(Y_train.shape)   # (200,)
+                            """
+                            # Loading all data: 37min
+                            
+                            # Create a group for each batch
+                            batch_group = h5file.create_group(f'batch_{nbatch}')
+                            
+                            # Save datasets within the batch group
+                            batch_group.create_dataset('meds', data=meds)
+                            batch_group.create_dataset('chart', data=chart)
+                            batch_group.create_dataset('out', data=out)
+                            batch_group.create_dataset('proc', data=proc)
+                            batch_group.create_dataset('lab', data=lab)
+                            batch_group.create_dataset('stat_train', data=stat_train)
+                            batch_group.create_dataset('demo_train', data=demo_train)
+                            batch_group.create_dataset('Y_train', data=Y_train)
+
+                    print(f"All batches data saved to a single HDF5 file.")
+
+
+                print(STOP)
+
+                ###########################################
+                #                  Train                  #
+                ###########################################
                 print("======= EPOCH {:.1f} ========".format(epoch))
                 for nbatch in range(int(len(train_hids)/(args.batch_size))):
                     meds,chart,out,proc,lab,stat_train,demo_train,Y_train=self.getXY(train_hids[nbatch*args.batch_size:(nbatch+1)*args.batch_size],labels)
@@ -331,7 +390,7 @@ class DL_models():
         torch.backends.cudnn.enabled=True
         
         
-    def getXY(self,ids,labels):
+    def getXY(self,ids,labels, verbose=False):
         dyn_df=[]
         meds=torch.zeros(size=(0,0))
         chart=torch.zeros(size=(0,0))
@@ -348,7 +407,8 @@ class DL_models():
         for i in range(len(keys)):
             dyn_df.append(torch.zeros(size=(1,0)))
 #         print(len(dyn_df))
-        for sample in tqdm(ids, desc="Processing samples"):
+        #for sample in tqdm(ids, desc="Processing samples"):
+        for sample in ids:
             if self.data_icu:
                 y=labels[labels['stay_id']==sample]['label']
             else:
