@@ -19,11 +19,35 @@ class Generator():
         self.feat_cond,self.feat_proc,self.feat_out,self.feat_chart,self.feat_med = feat_cond,feat_proc,feat_out,feat_chart,feat_med
         self.cohort_output=cohort_output
         self.impute=impute
+
+        data_dict = {
+            "Cohort Output": cohort_output,
+            "Mortality Indicator (if_mort)": if_mort,
+            "Admission Indicator (if_admn)": if_admn,
+            "Length of Stay Indicator (if_los)": if_los,
+            "Feature Condition (feat_cond)": feat_cond,
+            "Feature Procedure (feat_proc)": feat_proc,
+            "Feature Outcome (feat_out)": feat_out,
+            "Feature Chart (feat_chart)": feat_chart,
+            "Feature Medication (feat_med)": feat_med,
+            "Imputation Strategy (impute)": impute,
+            "Include Time": include_time,
+            "Bucket Size": bucket,
+            "Prediction Window (predW)": predW
+        }
+
+        # If you want to print the dictionary nicely
+        for key, value in data_dict.items():
+            print(f"{key}: {value}\n")  
+
         self.data = self.generate_adm()
         print("[ READ COHORT ]")
         
         self.generate_feat()
         print("[ READ ALL FEATURES ]")
+
+        print(self.feat_cond)
+        print(STOP)
         
         if if_mort:
             self.mortality_length(include_time,predW)

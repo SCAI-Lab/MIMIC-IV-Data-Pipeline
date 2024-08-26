@@ -183,7 +183,7 @@ class DL_models():
 
                 # Create a single HDF5 file to store all batches
                 #for sample in tqdm(ids, desc="Processing samples"):
-                with h5py.File('all_batches_data_v2.h5', 'w') as h5file:
+                with h5py.File('data_dt/all_batches_data_v3.h5', 'w') as h5file:
                     for nbatch in  tqdm(range(int(len(zids) / z_size)), desc="Loading batches"):
                             meds, chart, out, proc, lab, stat_train, demo_train, Y_train = self.getXY(train_hids[nbatch * z_size : (nbatch + 1) * z_size], labels)
 
@@ -203,6 +203,7 @@ class DL_models():
                             batch_group = h5file.create_group(f'batch_{nbatch}')
                             
                             # Save datasets within the batch group
+                            batch_group.create_dataset('ids', data=np.array(train_hids[nbatch * z_size : (nbatch + 1) * z_size]))
                             batch_group.create_dataset('meds', data=meds)
                             batch_group.create_dataset('chart', data=chart)
                             batch_group.create_dataset('out', data=out)

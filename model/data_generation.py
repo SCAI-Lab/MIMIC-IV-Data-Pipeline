@@ -41,6 +41,8 @@ class Generator():
         print("[ SUCCESSFULLY SAVED DATA DICTIONARIES ]")
     
     def generate_feat(self):
+        print("TEST2")
+
         if(self.feat_cond):
             print("[ ======READING DIAGNOSIS ]")
             self.generate_cond()
